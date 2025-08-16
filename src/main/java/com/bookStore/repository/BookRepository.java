@@ -8,4 +8,6 @@ import com.bookStore.entity.Book;
 @Repository
 public interface BookRepository extends JpaRepository<Book,Integer>  {
 
+	boolean existsByName(String name);
+
 }

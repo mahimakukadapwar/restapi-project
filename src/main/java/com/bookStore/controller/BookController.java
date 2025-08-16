@@ -4,73 +4,56 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
 
 import com.bookStore.entity.Book;
-import com.bookStore.entity.MyBookList;
 import com.bookStore.services.BookService;
-import com.bookStore.services.MyBookListService;
-
-import java.util.*;
 
 @Controller
 public class BookController {
-	
-	@Autowired
-	private BookService service;
-	
-	@Autowired
-	private MyBookListService myBookService;
-	
-	@GetMapping("/")
-	public String home() {
-		return "home";
-	}
-	
-	@GetMapping("/book_register")
-	public String bookRegister() {
-		return "bookRegister";
-	}
-	
-	@GetMapping("/available_books")
-	public ModelAndView getAllBook() {
-		List<Book>list=service.getAllBook();
-//		ModelAndView m=new ModelAndView();
-//		m.setViewName("bookList");
-//		m.addObject("book",list);
-		return new ModelAndView("bookList","book",list);
-	}
-	
-	@PostMapping("/save")
-	public String addBook(@ModelAttribute Book b) {
-		service.save(b);
-		return "redirect:/available_books";
-	}
-	@GetMapping("/my_books")
-	public String getMyBooks(Model model)
-	{
-		List<MyBookList>list=myBookService.getAllMyBooks();
-		model.addAttribute("book",list);
-		return "myBooks";
-	}
-	@RequestMapping("/mylist/{id}")
-	public String getMyList(@PathVariable("id") int id) {
-		Book b=service.getBookById(id);
-		MyBookList mb=new MyBookList(b.getId(),b.getName(),b.getAuthor(),b.getPrice());
-		myBookService.saveMyBooks(mb);
-		return "redirect:/my_books";
-	}
-	
-	@RequestMapping("/editBook/{id}")
-	public String editBook(@PathVariable("id") int id,Model model) {
-		Book b=service.getBookById(id);
-		model.addAttribute("book",b);
-		return "bookEdit";
-	}
-	@RequestMapping("/deleteBook/{id}")
-	public String deleteBook(@PathVariable("id")int id) {
-		service.deleteById(id);
-		return "redirect:/available_books";
-	}
-	
+
+    @Autowired
+    private BookService bookService;
+
+    // Home page
+    @GetMapping("/")
+    public String home(Model model) {
+        model.addAttribute("book", bookService.getAllBook());
+        return "home"; // home.html
+    }
+
+    // Show new book registration form
+    @GetMapping("/book_register")
+    public String showBookRegisterForm(Model model) {
+        model.addAttribute("book", new Book());
+        return "bookRegister"; // bookRegister.html
+    }
+
+    // Save new or updated book
+    @PostMapping("/save")
+    public String saveBook(@ModelAttribute Book book) {
+        bookService.save(book); // Validations in service (ApiException) will run
+        return "redirect:/available_books";
+    }
+
+    // Show all available books
+    @GetMapping("/available_books")
+    public String showAvailableBooks(Model model) {
+        model.addAttribute("book", bookService.getAllBook());
+        return "bookList"; // bookList.html
+    }
+
+    // Show edit book form
+    @GetMapping("/editBook/{id}")
+    public String editBook(@PathVariable int id, Model model) {
+        Book book = bookService.getBookById(id); // ApiException handled globally
+        model.addAttribute("book", book);
+        return "bookEdit"; // bookEdit.html
+    }
+
+    // Delete book
+    @GetMapping("/deleteBook/{id}")
+    public String deleteBook(@PathVariable int id) {
+        bookService.deleteById(id); // ApiException handled globally
+        return "redirect:/available_books";
+    }
 }
